@@ -1,9 +1,10 @@
-from telebot.types import CallbackQuery
+from telebot.types import CallbackQuery, Message
 
 from App.Components.BaseComponent import BaseComponent
+from App.Config.config import ADMIN_IDS
+from App.Database.Usuarios import Usuarios
+from App.Utils.Markup import Markup
 from App.custom_bot import CustomBot
-
-import asyncio
 
 class _MainMenu(BaseComponent):
     def __init__(self, bot: CustomBot, userid: int, call: CallbackQuery = None):
@@ -11,23 +12,38 @@ class _MainMenu(BaseComponent):
         self.bot = bot
         self.userid = userid
         self.call = call
+        self.usuario = None
         self.start()
 
     def start(self):
-        # veriticar permissão, caso usuário esteja com assinatura ativa, mostrar menu de assinatura
 
-        texto = "Olá, eu sou o bot Anidong! 🤖\n\n Qual seu nome?"
-        msg = self.bot.send_message(self.userid, texto)
-        response = asyncio.run(self.get_response(msg))
-        print("Response: ", response)
+        self.usuario = Usuarios().get_usuario(self.userid)
 
-    async def get_response(self, msg):
-        loop = asyncio.get_event_loop()
-        future = loop.create_future()
+        if not self.usuario:
+            tg_user = self.bot.get_chat(chat_id=self.userid)
+            nome_usuario = tg_user.first_name if tg_user.first_name else "Usuário"
+            Usuarios().add_user(userid=self.userid, nome=nome_usuario)
+            self.usuario = Usuarios().get_usuario(self.userid)
 
-        def callback(message):
-            future.set_result(message.text)
+        if self.userid in ADMIN_IDS or Usuarios().esta_assinando(self.userid):
+            self.menu_assinantes()
+        else:
+            self.menu_inicial()
 
-        self.bot.register_next_step_handler(msg, callback)
-        return await future
-            
+
+    def menu_inicial(self):
+        texto = f"Olá, {self.usuario.get('nome')}! Eu sou o bot Anidong! 🤖 \n\n Deseja comprar uma assinatura?"
+        markup = Markup.generate_inline([
+            [['📝 Comprar assinatura', 'assinatura__comprar']]
+        ])
+        self.bot.send_message(self.userid, texto, reply_markup=markup)
+
+
+    def menu_assinantes(self):
+        texto = f"Olá, {self.usuario.get('nome')}! 🤖 \n\n O que deseja fazer?"
+        markup = Markup().generate_inline([
+            [['🔍 Visualizar assinatura', 'assinatura__visualizar']],
+            [['⭐ Obras favoritas', 'Obras_ObrasFavoritas__listar'], ['🔍 Pesquisar', 'obras__pesquisar']],
+            [['📈 Em alta', 'obras__em_alta'], ['📂 Categorias', 'obras_categorias']]
+        ])
+        self.bot.send_message(self.userid, texto, reply_markup=markup)

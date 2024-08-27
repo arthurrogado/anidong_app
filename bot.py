@@ -8,10 +8,10 @@ from telebot.types import (
 )
 
 from App.Components._MainMenu import _MainMenu
-from App.Database.database import DB
+from App.Database.DB import DB
 from App.Config.config import *
 from App.Config.secrets import *
-from App.Utils.markups import *
+from App.Utils.Markup import Markup
 
 # Import Models
 from App.Database.users import User
@@ -29,7 +29,7 @@ bot = TeleBot(BOT_TOKEN)
 
 # Set basic commands (start, about, help)
 basic_commands = [
-    BotCommand("start", "🤖 Start botttttt"),
+    BotCommand("start", "🤖 Inicia o bot"),
     BotCommand("about", "❓ About the bot"),
     BotCommand("help", "📚 Help")
 ]
@@ -44,7 +44,7 @@ def answer_web_app_data(msg):
     try:
         response = json.loads(msg.web_app_data.data)
         # clear keyboard
-        bot.send_message(msg.from_user.id, 'Success! Data received: \n\n' + str(response), reply_markup=ReplyKeyboardRemove())
+        bot.send_message(msg.from_user.id, 'Success! Data received: \n\n' + str(response), reply_markup=Markup.clear_markup())
 
         action = response.get('action')
 
@@ -68,14 +68,25 @@ def teste(msg):
     bot.send_message(userid, 'Test')
 
 def automatic_run(data_text: str, chat_id: int, call: CallbackQuery = None):
+    """Padrão de chamada:
+        /caminho_da_classe__metodo__parametro1__parametro2__parametro3
+        
+        - caminho_da_classe: Caminho da classe a ser chamada, isto é, pode estar dentro de um diretório e subdiretórios.
+        - metodo: Método a ser chamado dentro da classe.
+        - parametros: Parâmetros a serem passados para o método.
+    """
     try:
-        class_name, method_name, *params = data_text.split("__")
-        class_name = f"_{class_name.capitalize()}"
+        class_path, method_name, *params = data_text.split("__")
+        class_name = class_path.split("_")[-1]
+        class_path = ".".join([class_part for class_part in class_path.split("_")])
         method_name = f"{method_name}" if method_name else "async_init"
-        print(f"\n  Class name: ", class_name, " | Método: ", method_name, " | Parâmetros: ", params)
+        print(f"\n  Class path: ", class_path, " | Método: ", method_name, " | Parâmetros: ", params)
     
         # Importar o módulo dinamicamente
-        module = importlib.import_module(f"App.Components.{class_name}")
+        try:
+            module = importlib.import_module(f"App.Components._{class_path}")
+        except ModuleNotFoundError:
+            module = importlib.import_module(f"App.Components.{class_path}")
     
         # Obter a classe dinamicamente
         class_ = getattr(module, class_name)
@@ -87,21 +98,10 @@ def automatic_run(data_text: str, chat_id: int, call: CallbackQuery = None):
         method = getattr(instance, method_name)
         method(*params)
         return
-    
-    except ModuleNotFoundError as e:
-        print(f"Erro ao importar o módulo: {e}")
-        call.answer("Módulo não encontrado", show_alert=True)
-        return
-    # except AttributeError as e:
-    #     print(f"Erro ao acessar a classe ou método: {e}")
-    #     await call.answer("Classe ou método não encontrado", show_alert=True)
-    #     return
+
     except Exception as e:
         text_erro = f"Erro inesperado: {e} \n Linha: {e.__traceback__.tb_lineno}"
-        print(text_erro)
-        # call.answer(text_erro, show_alert=True)
-        print('\n\n')
-        raise e
+        print(text_erro + '\n\n')
         return
 
 # Any message

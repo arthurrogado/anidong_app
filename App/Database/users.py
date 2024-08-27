@@ -1,5 +1,5 @@
 from telebot import TeleBot
-from App.Database.database import DB
+from App.Database.DB import DB
 
 class User(DB):
     def __init__(self, bot: TeleBot = None):

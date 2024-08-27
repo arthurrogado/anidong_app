@@ -1,8 +1,8 @@
-from App.Utils.constants import ADMIN_ID
+from App.Config.config import ADMIN_IDS
 from urllib.parse import urlparse
 
 def is_admin(userid):
-    if userid == ADMIN_ID:
+    if userid in ADMIN_IDS:
         return True
     
 def dict_to_url_params(params: dict):

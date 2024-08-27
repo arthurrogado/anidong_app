@@ -1,8 +1,7 @@
 from telebot import TeleBot
 from telebot.types import CallbackQuery
-from App.Components.__component import BaseComponent
-from App.Components.other_menu import OtherMenu
-from ..Utils.markups import *
+from App.Components.BaseComponent import BaseComponent
+from ..Utils.Markup import *
 
 class MainMenu(BaseComponent):
 
@@ -23,7 +22,7 @@ class MainMenu(BaseComponent):
     def handle(self, callback):
         self.bot.answer_callback_query(callback.id, "Hello!")
         self.bot.send_message(self.userid, "Hello!")
-        OtherMenu(self.bot, self.userid)
+        # OtherMenu(self.bot, self.userid)
 
     def start_from_here(self):
         self.bot.send_message(self.userid, "Hello from here! Not from start!")
