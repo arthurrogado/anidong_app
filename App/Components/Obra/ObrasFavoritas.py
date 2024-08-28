@@ -13,7 +13,7 @@ class ObrasFavoritas(BaseComponent):
         self.start()
 
     def start(self):
-        self.listar()
+        pass
 
     def listar(self):
         obras_favoritas = Obras().get_obras_favoritas(self.userid)

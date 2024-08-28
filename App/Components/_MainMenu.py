@@ -42,8 +42,8 @@ class _MainMenu(BaseComponent):
     def menu_assinantes(self):
         texto = f"Olá, {self.usuario.get('nome')}! 🤖 \n\n O que deseja fazer?"
         markup = Markup().generate_inline([
-            [['🔍 Visualizar assinatura', 'assinatura__visualizar']],
-            [['⭐ Obras favoritas', 'Obras_ObrasFavoritas__listar'], ['🔍 Pesquisar', 'obras__pesquisar']],
-            [['📈 Em alta', 'obras__em_alta'], ['📂 Categorias', 'obras_categorias']]
+            [['✅ Visualizar assinatura', 'assinatura__visualizar']],
+            [['⭐ Obras favoritas', 'Obra_ObrasFavoritas__listar'], ['🔍 Pesquisar', 'switch_inline_query_current_chat=nome_obra: ']],
+            [['📈 Em alta', 'Obra__em_alta'], ['📂 Categorias', 'obras_categorias']]
         ])
         self.bot.send_message(self.userid, texto, reply_markup=markup)

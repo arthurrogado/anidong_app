@@ -25,7 +25,7 @@ class Markup():
                 [
                     ['Butto3', 'action3'],
                     ['Butto4', 'action4'],
-                    ['Butto5', 'action5']
+                    ['Butto5', 'action5', *args] # extra args, like switch_inline_query 
                 ]
             ]
             sufix (str, optional): A suffix to be added to the callback data. Defaults to ''.
@@ -37,9 +37,20 @@ class Markup():
         for row in buttons:
             row_buttons = []
             for button in row:
-                row_buttons.append(
-                    InlineKeyboardButton(text=button[0], callback_data=f'{button[1]}{sufix}')
-                )
+                #button[2] = 'switch_inline_query=example' # extra args
+                kwargs = {}
+
+                # se tiver "=" em qualquer index de button
+                if any('=' in b for b in button):
+                    kwargs = button[1].split('=')
+                    kwargs = {kwargs[0]: kwargs[1]}
+                    row_buttons.append(
+                        InlineKeyboardButton(text=button[0], **kwargs)
+                    )
+                else:
+                    row_buttons.append(
+                        InlineKeyboardButton(text=button[0], callback_data=f'{button[1]}{sufix}')
+                    )
             keyboard.row(*row_buttons)
         return keyboard
     

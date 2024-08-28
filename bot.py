@@ -4,9 +4,14 @@ from telebot.types import (
     CallbackQuery,
     BotCommand,
     BotCommandScopeAllPrivateChats,
-    MenuButtonCommands
+    MenuButtonCommands,
+    InlineQuery,
+    InlineQueryResultArticle,
+    InlineQueryResultPhoto,
+    InputTextMessageContent,
 )
 
+from App.Components.Queries import Queries
 from App.Components._MainMenu import _MainMenu
 from App.Database.DB import DB
 from App.Config.config import *
@@ -80,13 +85,16 @@ def automatic_run(data_text: str, chat_id: int, call: CallbackQuery = None):
         class_name = class_path.split("_")[-1]
         class_path = ".".join([class_part for class_part in class_path.split("_")])
         method_name = f"{method_name}" if method_name else "async_init"
-        print(f"\n  Class path: ", class_path, " | Método: ", method_name, " | Parâmetros: ", params)
+        print(f"\n  Class path: ", class_path, " | Class name: " + class_name + " | Método: ", method_name, " | Parâmetros: ", params)
     
         # Importar o módulo dinamicamente
         try:
             module = importlib.import_module(f"App.Components._{class_path}")
         except ModuleNotFoundError:
-            module = importlib.import_module(f"App.Components.{class_path}")
+            try:
+                module = importlib.import_module(f"App.Components.{class_path}.{class_path}")
+            except ModuleNotFoundError:
+                module = importlib.import_module(f"App.Components.{class_path}")
     
         # Obter a classe dinamicamente
         class_ = getattr(module, class_name)
@@ -100,8 +108,11 @@ def automatic_run(data_text: str, chat_id: int, call: CallbackQuery = None):
         return
 
     except Exception as e:
+        # bot.send_message(chat_id, 'Oops! Ocorreu um erro inesperado ao executar o comando. Contate o suporte.')
+        bot.send_message(chat_id, 'Opa, calma aí, paizão. Tô desenvolvendo isso ainda. Mas já já tá pronto. \n Ou talvez é só um comando desconhecido mesmo haha')
         text_erro = f"Erro inesperado: {e} \n Linha: {e.__traceback__.tb_lineno}"
-        print(text_erro + '\n\n')
+        print(text_erro + '\n\n\n')
+        raise e
         return
 
 # Any message
@@ -156,5 +167,24 @@ def callback(call):
         options[data]() # Executes the function in the dict
     else:
         automatic_run(data, userid, call)
+
+
+@bot.inline_handler(lambda query: True)
+def inline_handler(query: InlineQuery):
+    # try:
+    #     query_patterns = {
+    #         'nome_obra:'
+    #     }
+    #     r = InlineQueryResultArticle('1', 'Result', InputTextMessageContent('Result message'))
+    #     # r2 = InlineQueryResultArticle('1', 'Result', InputPhotoResult('Result message'))
+    #     bot.answer_inline_query(query.id, [r])
+    # except Exception as e:
+    #     print(e)
+    
+    resultados = Queries(bot).pesquisar_obras(query.query)
+    bot.answer_inline_query(query.id, results=resultados)
+
+    pass
+
 
 bot.infinity_polling()

@@ -1,6 +1,2 @@
-import datetime as dt
-
-texto = ''
-data = dt.datetime.strptime(texto, '%Y-%m-%d %H:%M:%S')
-
-print(data)
+options = ['oi', 'oi', 'oi']
+print(len(options))

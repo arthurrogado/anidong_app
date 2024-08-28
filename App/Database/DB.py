@@ -46,7 +46,7 @@ class DB:
             print(e)
             return False
     
-    def select(self, table: str, columns: list, where = None):
+    def select(self, table: str, columns: list, where = None, final: str = None):
         # Example: select('users', ['userid', 'lang'], 'userid = ?', [userid])
         # Example multiple where: select('users', ['userid', 'lang'], "userid = '850446631' AND lang = 'pt' ")
         # Example get all from table: select('users', ['*'])
@@ -59,12 +59,14 @@ class DB:
             SELECT {",".join(columns)}
             FROM {table}
             {f' WHERE {where} AND deleted_at IS NULL' if where else 'WHERE deleted_at IS NULL'}
+            {final if final else ''}
             """
         else:
             sql = f"""
             SELECT {",".join(columns)}
             FROM {table}
             {f' WHERE {where}' if where else ''}
+            {final if final else ''}
             """
         # print('\n\n', sql)
         self.cursor.execute(sql)
