@@ -76,7 +76,8 @@ class DB:
     def select_one(self, table: str, columns: list, where: str = None):
         """ Example: select_one('users', ['userid', 'lang'], 'userid = ?', [userid]) """
         result = self.select(table, columns, where)
-        return result[0] if result else {}
+        # return result[0] if result else {}
+        return result[0] if result else None
     
     def update(self, table: str, data: dict, where: str) -> bool:
         # Example: update('users', {'lang': lang}, 'userid = ?', [userid])

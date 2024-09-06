@@ -22,8 +22,11 @@ class _MainMenu(BaseComponent):
         if not self.usuario:
             tg_user = self.bot.get_chat(chat_id=self.userid)
             nome_usuario = tg_user.first_name if tg_user.first_name else "Usuário"
+            print(f"\n\n Nome do usuário: {nome_usuario}\n\n")
             Usuarios().add_user(userid=self.userid, nome=nome_usuario)
             self.usuario = Usuarios().get_usuario(self.userid)
+            if self.usuario == None: 
+                self.usuario = {'nome': nome_usuario}
 
         if self.userid in ADMIN_IDS or Usuarios().esta_assinando(self.userid):
             self.menu_assinantes()
@@ -43,7 +46,7 @@ class _MainMenu(BaseComponent):
         texto = f"Olá, {self.usuario.get('nome')}! 🤖 \n\n O que deseja fazer?"
         markup = Markup().generate_inline([
             [['✅ Visualizar assinatura', 'assinatura__visualizar']],
-            [['⭐ Obras favoritas', 'Obra_ObrasFavoritas__listar'], ['🔍 Pesquisar', 'switch_inline_query_current_chat=nome_obra: ']],
+            [['⭐ Favoritas', 'Obra_ObrasFavoritas__listar'], ['🔍 Pesquisar', 'switch_inline_query_current_chat=o: ']],
             [['📈 Em alta', 'Obra__em_alta'], ['📂 Categorias', 'obras_categorias']]
         ])
         self.bot.send_message(self.userid, texto, reply_markup=markup)

@@ -181,8 +181,9 @@ def inline_handler(query: InlineQuery):
     # except Exception as e:
     #     print(e)
     
-    resultados = Queries(bot).pesquisar_obras(query.query)
-    bot.answer_inline_query(query.id, results=resultados)
+    # resultados = Queries(bot).pesquisar_obras(query.query)
+    resultados = Queries(bot, query.query).get_results()
+    bot.answer_inline_query(query.id, results=resultados, cache_time=1)
 
     pass
 

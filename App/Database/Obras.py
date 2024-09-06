@@ -1,5 +1,4 @@
 from telebot import TeleBot
-
 from App.Database.DB import DB
 
 class Obras(DB):
@@ -59,34 +58,8 @@ class Obras(DB):
         self.cursor.execute(query, [obra_id])
         return self.dictify_query(self.cursor) #
 
-
-
-
-
-
-
-
-    def ordenar_episodios(self, episodios) -> list[dict]:
-        # Criar um dicionário para mapear cada episódio pelo seu ID
-        # episodio_dict = {ep['id']: ep for ep in episodios}
-        
-        # Encontrar o primeiro episódio (aquele que não tem 'id_episodio_anterior')
-        primeiro_episodio = None
-        for episodio in episodios:
-            if not episodio['id_episodio_anterior']:
-                primeiro_episodio = episodio
-                break
-        
-        # Construir a lista ordenada de episódios
-        episodios_ordenados = []
-        episodio_atual = primeiro_episodio
-        while episodio_atual:
-            episodios_ordenados.append(episodio_atual)
-            proximo_id = episodio_atual['id']
-            episodio_atual = next((ep for ep in episodios if ep['id_episodio_anterior'] == proximo_id), None)
-
-        return episodios_ordenados
-    
-    def get_episodios_temporada(self, id_temporada: int):
-        return self.ordenar_episodios(self.select('episodios', ['*'], f'id_temporada = {id_temporada}'))
+    def get_qtd_temporadas(self, id_obra: int):
+        query = f"SELECT COUNT(*) FROM temporadas WHERE id_obra = {id_obra}"
+        self.cursor.execute(query)
+        return self.cursor.fetchone()[0]
 
