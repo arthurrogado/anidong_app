@@ -34,7 +34,11 @@ class Obra(BaseComponent):
 
         temporadas = Obras().get_temporadas_ordenadas(id_obra)
         for temporada in temporadas:
-            opcoes_markup.append([[f'🎬 Temporada ' + str(temporada.get('ordem')), f'switch_inline_query_current_chat=t: ']])
+            if temporada.get('especial') == 1:
+                symbol = '🌟'
+            else:
+                symbol = '🎬'
+            opcoes_markup.append([[f'{symbol} Temporada ' + str(temporada.get('ordem')), f'switch_inline_query_current_chat=t: {temporada.get("id")}']])
 
         markup = Markup.generate_inline(opcoes_markup)            
 
@@ -93,7 +97,7 @@ class Obra(BaseComponent):
         markup_controles = Markup.generate_inline([
             controle,
             [
-                ['Temporadas', f'Obra__temporadas__{episodio.get("id_obra")}']
+                ['🔍 Todos episódios', f"switch_inline_query_current_chat=t: {episodio.get('id_temporada')}"]
             ]
         ])
 

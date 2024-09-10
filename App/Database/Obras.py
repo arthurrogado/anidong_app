@@ -44,16 +44,20 @@ class Obras(DB):
 
     def get_temporadas_ordenadas(self, obra_id: int):
         query = """
-        WITH RECURSIVE cte AS (
-            SELECT id, nome, id_temporada_anterior
-            FROM temporadas
-            WHERE id_temporada_anterior IS NULL AND id_obra = %s
-            UNION ALL
-            SELECT t.id, t.nome, t.id_temporada_anterior
-            FROM temporadas t
-            JOIN cte ON t.id_temporada_anterior = cte.id
-        )
-        SELECT * FROM cte;
+            WITH RECURSIVE cte AS (
+                SELECT id, nome, id_temporada_anterior, especial, 
+                    CASE WHEN especial THEN nome ELSE 1 END AS ordem,
+                    CASE WHEN especial THEN 0 ELSE 1 END AS ordem_continua
+                FROM temporadas
+                WHERE id_temporada_anterior IS NULL AND id_obra = %s
+                UNION ALL
+                SELECT t.id, t.nome, t.id_temporada_anterior, t.especial, 
+                    CASE WHEN t.especial THEN t.nome ELSE cte.ordem_continua + 1 END,
+                    CASE WHEN t.especial THEN cte.ordem_continua ELSE cte.ordem_continua + 1 END
+                FROM temporadas t
+                JOIN cte ON t.id_temporada_anterior = cte.id
+            )
+            SELECT id, nome, id_temporada_anterior, especial, ordem FROM cte;
         """
         self.cursor.execute(query, [obra_id])
         return self.dictify_query(self.cursor) #

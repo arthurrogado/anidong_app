@@ -15,8 +15,12 @@ class Episodios(DB):
             LIMIT 1;
         """
         self.cursor.execute(sql, [id_episodio])
-        return self.dictify_query(self.cursor)[0] if self.cursor.rowcount > 0 else {}
-        return self.select_one('episodios', ['*'], f'id = {id_episodio}')
+        result = self.dictify_query(self.cursor, ['id', 'id_temporada', 'id_episodio_anterior', 'msg_id', 'created_at', 'link', 'deleted_at', 'nome', 'nome_obra'])
+        if result and len(result) > 0:
+            return result[0]
+        else:
+            return {}
+        # return self.select_one('episodios', ['*'], f'id = {id_episodio}')
 
     def ordenar_episodios(self, episodios) -> list[dict]:
         # Criar um dicionário para mapear cada episódio pelo seu ID
@@ -48,7 +52,7 @@ class Episodios(DB):
         episodios = self.get_episodios_temporada(episodio.get('id_temporada'))
         i = 1
         for ep in episodios:
-            if ep.get('id') == id_episodio:
+            if str(ep.get('id')) == str(id_episodio):
                 break
             i += 1
         episodio['ordem'] = i

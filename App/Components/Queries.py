@@ -36,7 +36,6 @@ class Queries():
                 self.results = self.results[:50] # limitar a 50 resultados
                 break
         
-        print('Results:', self.results[0].title)
         return self.results
 
     def get_size(self, url: str):

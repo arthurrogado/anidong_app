@@ -26,10 +26,24 @@ class DB:
         except Exception as e:
             print(e)
 
-    def dictify_query(self, cursor: mysql.connector.cursor.MySQLCursor):
+    def dictify_query(self, cursor: mysql.connector.cursor.MySQLCursor, columns: list = None):
+        """ Returns a list of dictionaries from a cursor object """
+        try:
+            if columns:
+                return [dict(zip(columns, row)) for row in cursor.fetchall()]
+            else:
+                columns = [column[0] for column in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        except Exception as e:
+            print(e)
+            # return generic object with result
+            return []
+            
+
+    def dictify_result(self, cursor: mysql.connector.cursor.MySQLCursor, result: list):
         """ Returns a list of dictionaries from a cursor object """
         columns = [column[0] for column in cursor.description]
-        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return [dict(zip(columns, row)) for row in result]
 
     # Generic methods for CRUD
 
@@ -51,23 +65,21 @@ class DB:
         # Example multiple where: select('users', ['userid', 'lang'], "userid = '850446631' AND lang = 'pt' ")
         # Example get all from table: select('users', ['*'])
         # Check if the table has the column 'deleted_at'
+        self.cursor.reset()
         self.cursor.execute(f"SHOW COLUMNS FROM {table} LIKE 'deleted_at'")
         column_exists = self.cursor.fetchone()
 
         if column_exists:
-            sql = f"""
-            SELECT {",".join(columns)}
-            FROM {table}
-            {f' WHERE {where} AND deleted_at IS NULL' if where else 'WHERE deleted_at IS NULL'}
-            {final if final else ''}
-            """
+            sql = f"SELECT {','.join(columns)}"
+            sql += f" FROM {table}"
+            sql += f" WHERE {where} AND deleted_at IS NULL" if where else " WHERE deleted_at IS NULL"
+            sql += f" {final}" if final else ""
         else:
-            sql = f"""
-            SELECT {",".join(columns)}
-            FROM {table}
-            {f' WHERE {where}' if where else ''}
-            {final if final else ''}
-            """
+            sql = f"SELECT {','.join(columns)}"
+            sql += f" FROM {table}"
+            sql += f" WHERE {where}" if where else ""
+            sql += f" {final}" if final else ""
+            
         # print('\n\n', sql)
         self.cursor.execute(sql)
         rows = self.cursor.fetchall()

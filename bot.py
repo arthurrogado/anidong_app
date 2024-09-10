@@ -95,21 +95,23 @@ def automatic_run(data_text: str, chat_id: int, call: CallbackQuery = None):
                 module = importlib.import_module(f"App.Components.{class_path}.{class_path}")
             except ModuleNotFoundError:
                 module = importlib.import_module(f"App.Components.{class_path}")
-    
-        # Obter a classe dinamicamente
-        class_ = getattr(module, class_name)
-    
-        # Instanciar a classe
-        instance = class_(bot, chat_id, call)
 
-        # Obter o método dinamicamente e chamá-lo com os parâmetros
-        method = getattr(instance, method_name)
-        method(*params)
-        return
+        try:
+            # Obter a classe dinamicamente
+            class_ = getattr(module, class_name)
+        
+            # Instanciar a classe
+            instance = class_(bot, chat_id, call)
+
+            # Obter o método dinamicamente e chamá-lo com os parâmetros
+            method = getattr(instance, method_name)
+            method(*params)
+            return
+        except ModuleNotFoundError as e:
+            bot.send_message(chat_id, 'Opa, calma aí, paizão. Tô desenvolvendo isso ainda. Mas já já tá pronto. \n Ou talvez é só um comando desconhecido mesmo haha')
 
     except Exception as e:
-        # bot.send_message(chat_id, 'Oops! Ocorreu um erro inesperado ao executar o comando. Contate o suporte.')
-        bot.send_message(chat_id, 'Opa, calma aí, paizão. Tô desenvolvendo isso ainda. Mas já já tá pronto. \n Ou talvez é só um comando desconhecido mesmo haha')
+        bot.send_message(chat_id, 'Oops! Ocorreu um erro inesperado ao executar o comando. Contate o suporte.')
         text_erro = f"Erro inesperado: {e} \n Linha: {e.__traceback__.tb_lineno}"
         print(text_erro + '\n\n\n')
         raise e

@@ -14,17 +14,23 @@ class Temporadas(DB):
     
     def get_ordem_temporada(self, id_temporada: int):
         temporada = self.get_temporada(id_temporada)
-
-        if len(temporada) == 0:
-            return False
-
         if temporada.get('especial') == '1':
             return temporada.get('nome')
-        
         if not temporada.get('id_temporada_anterior'):
             return 1
         
-        return self.get_ordem_temporada(temporada.get('id_temporada_anterior')) + 1
+        temporadas_ordenadas = self.get_temporadas_ordenadas(temporada.get('id_obra'))
+        if len(temporadas_ordenadas) == 0:
+            return False
+
+        i = 1
+        for temporada in temporadas_ordenadas:
+            if temporada.get('id') == id_temporada:
+                return i
+            if temporada.get('especial') == 1:
+                continue
+            i += 1
+            
 
     def get_primeira_temporada(self, id_obra: int):
         return self.select_one('temporadas', ['*'], f'id_obra = {id_obra} AND id_temporada_anterior IS NULL')
@@ -36,7 +42,7 @@ class Temporadas(DB):
             FROM temporadas
             WHERE id_temporada_anterior IS NULL AND id_obra = %s
             UNION ALL
-            SELECT t.id, t.nome, t.id_temporada_anterior
+            SELECT t.id, t.nome, t.id_temporada_anterior, t.especial
             FROM temporadas t
             JOIN cte ON t.id_temporada_anterior = cte.id
         )

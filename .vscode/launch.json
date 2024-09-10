@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "bot.py", // Update this line with your main file name
+            "console": "integratedTerminal"
+        }
+    ]
+}
