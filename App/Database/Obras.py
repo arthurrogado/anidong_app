@@ -67,3 +67,38 @@ class Obras(DB):
         self.cursor.execute(query)
         return self.cursor.fetchone()[0]
 
+
+    def favoritar(self, id_usuario: int, id_obra: int):
+        return self.insert('obras_favoritas', {'id_usuario': id_usuario, 'id_obra': id_obra})
+    
+    def desfavoritar(self, id_usuario: int, id_obra: int):
+        return self.delete('obras_favoritas', f'id_usuario = {id_usuario} AND id_obra = {id_obra}')
+    
+    def eh_favorita(self, id_usuario: int, id_obra: int):
+        return self.select_one('obras_favoritas', ['*'], f'id_usuario = {id_usuario} AND id_obra = {id_obra}') is not None
+    
+    def get_obras_favoritas_usuario(self, id_usuario: int):
+        sql = f"""
+            SELECT o.* FROM obras o
+            JOIN obras_favoritas of ON of.id_obra = o.id
+            WHERE of.id_usuario = {id_usuario}
+            limit 100
+        """
+        self.cursor.execute(sql)
+        return self.dictify_query(self.cursor)
+    
+    def get_obras_em_alta(self, dias: int = 7):
+        """Seleciona obras em alta baseado em quantos usuários assistiram nos últimos dias"""
+        sql = f"""
+            SELECT o.*, COUNT( DISTINCT h.id_usuario) AS qtd_acessos 
+            FROM obras o
+            JOIN temporadas t ON t.id_obra = o.id
+            JOIN episodios e ON e.id_temporada = t.id
+            JOIN historico_episodios h ON h.id_episodio = e.id
+            WHERE h.assistido_em >= DATE_SUB(NOW(), INTERVAL {dias} DAY)
+            GROUP BY o.id
+            ORDER BY qtd_acessos DESC
+            limit 100
+        """
+        self.cursor.execute(sql)
+        return self.dictify_query(self.cursor)

@@ -27,9 +27,18 @@ class Obra(BaseComponent):
         texto = f"🎬 **{obra.get('nome')}**\n\n"
         texto += f"📚 **Sinopse**: {obra.get('sinopse')}"
 
+        eh_favorita = Obras().eh_favorita(self.userid, id_obra)
+        
+        if eh_favorita:
+            label = "❤️ Favoritada"
+            opcao = f'Obra__desfavoritar__{id_obra}'
+        else:
+            label = "💟 Favoritar"
+            opcao = f'Obra__favoritar__{id_obra}'
+
         opcoes_markup = [
-            [['👁️ Assistir de onde parou', f'Obra__assistir__{id_obra}']],
-            [['❤️ Favoritar', f'Obras__favoritar__{id_obra}']]
+            [[label, opcao]],
+            [['👁️ Assistir de onde parou', f'Obra__assistir__{id_obra}']]
         ]
 
         temporadas = Obras().get_temporadas_ordenadas(id_obra)
@@ -107,4 +116,24 @@ class Obra(BaseComponent):
         Episodios().adicionar_historico(self.userid, episodio.get('id'))
 
 
+    def favoritar(self, id_obra: int):
+        Obras().favoritar(self.userid, id_obra)
+        if self.call is not None:
+            self.bot.answer_callback_query(self.call.id, '❤️ Obra favoritada!')
+            novo_markup = self.call.message.reply_markup
+            novo_markup.keyboard[0][0].text = '💔 Desfavoritar'
+            novo_markup.keyboard[0][0].callback_data = f'Obra__desfavoritar__{id_obra}'
+            self.bot.edit_message_reply_markup(self.userid, self.call.message.message_id, reply_markup=novo_markup)
+        else:
+            self.bot.send_message(self.userid, '❤️ Obra favoritada!')
 
+    def desfavoritar(self, id_obra: int):
+        Obras().desfavoritar(self.userid, id_obra)
+        if self.call is not None:
+            self.bot.answer_callback_query(self.call.id, '💔 Obra desfavoritada!')
+            novo_markup = self.call.message.reply_markup
+            novo_markup.keyboard[0][0].text = '💟 Favoritar'
+            novo_markup.keyboard[0][0].callback_data = f'Obra__favoritar__{id_obra}'
+            self.bot.edit_message_reply_markup(self.userid, self.call.message.message_id, reply_markup=novo_markup)
+        else:
+            self.bot.send_message(self.userid, '💔 Obra desfavoritada!')

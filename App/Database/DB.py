@@ -44,6 +44,10 @@ class DB:
         """ Returns a list of dictionaries from a cursor object """
         columns = [column[0] for column in cursor.description]
         return [dict(zip(columns, row)) for row in result]
+    
+    def get_all_columns(self, table: str):
+        self.cursor.execute(f"SHOW COLUMNS FROM {table}")
+        return [column[0] for column in self.cursor.fetchall()]
 
     # Generic methods for CRUD
 

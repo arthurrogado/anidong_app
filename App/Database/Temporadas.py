@@ -14,6 +14,8 @@ class Temporadas(DB):
     
     def get_ordem_temporada(self, id_temporada: int):
         temporada = self.get_temporada(id_temporada)
+        if not temporada:
+            return False
         if temporada.get('especial') == '1':
             return temporada.get('nome')
         if not temporada.get('id_temporada_anterior'):

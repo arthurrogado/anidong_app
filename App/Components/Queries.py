@@ -103,6 +103,13 @@ class Queries():
         print('Pesquisando em temporada:', query)
         split_query = query.split('t: ')[1].split(' ')
         id_temporada = split_query[0]
+        if id_temporada.isnumeric() is False:
+            return self.resultados_nao_encontrados('ID de temporada deve ser um número')
+        
+        ordem_temporada = Temporadas().get_ordem_temporada(id_temporada)
+        if not ordem_temporada:
+            return self.resultados_nao_encontrados('Temporada não encontrada')
+
         numero_episodio = split_query[1] if len(split_query) == 2 else None
 
         if numero_episodio:
@@ -113,9 +120,9 @@ class Queries():
             return [
                 InlineQueryResultArticle(
                     id=episodio.get('id'),
-                    title=episodio.get('nome'),
+                    title = f"{episodio.get('ordem')}º Episódio",
                     input_message_content=InputTextMessageContent('/Obra__assistir_episodio__' + str(episodio.get('id'))),
-                    description=episodio.get('sinopse')
+                    description = f"{episodio.get('nome')} • {ordem_temporada}º Temporada • {episodio.get('nome_obra')}"
                 )
             ]
         episodios = Episodios().get_episodios_temporada(id_temporada)
@@ -124,9 +131,9 @@ class Queries():
             results.append(
                 InlineQueryResultArticle(
                     id=episodio.get('id'),
-                    title=episodio.get('nome'),
+                    title = f"{episodio.get('ordem')}º Episódio",
                     input_message_content=InputTextMessageContent('/Obra__assistir_episodio__' + str(episodio.get('id'))),
-                    description=episodio.get('sinopse')
+                    description = f"{episodio.get('nome')} • {ordem_temporada}º Temporada • {episodio.get('nome_obra')}"
                 )
             )
         return results

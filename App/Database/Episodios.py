@@ -45,7 +45,15 @@ class Episodios(DB):
         return episodios_ordenados
     
     def get_episodios_temporada(self, id_temporada: int):
-        return self.ordenar_episodios(self.select('episodios', ['*'], f'id_temporada = {id_temporada}'))
+        sql = """SELECT e.*, o.nome AS nome_obra
+            FROM episodios e
+            JOIN temporadas t ON e.id_temporada = t.id
+            JOIN obras o ON t.id_obra = o.id
+            WHERE e.id_temporada = %s
+        """
+        self.cursor.execute(sql, [id_temporada])
+        result = self.dictify_query(self.cursor, ['id', 'id_temporada', 'id_episodio_anterior', 'msg_id', 'created_at', 'link', 'deleted_at', 'nome', 'nome_obra'])
+        return self.ordenar_episodios(result)
     
     def get_episodio_com_ordem(self, id_episodio: int):
         episodio = self.get_episodio(id_episodio)
@@ -76,8 +84,16 @@ class Episodios(DB):
             ORDER BY h.assistido_em DESC
             LIMIT 1;
         """
+        columns = []
+        columns.append(self.get_all_columns('episodios'))
+        columns.append(self.get_all_columns('historico_episodios'))
         self.cursor.execute(sql)
-        return self.cursor.fetchone()
+        result = self.dictify_query(self.cursor)
+        if result and len(result) > 0:
+            return result[0]
+        else:
+            return {}
+        # return self.cursor.fetchone()
     
     def get_proximo_episodio_historico_usuario(self, id_usuario: int, id_obra: int):
         # Pega automaticamente qual o próximo episódio a ser assistido pelo usuário, baseado no último episódio assistido
@@ -99,4 +115,5 @@ class Episodios(DB):
         return self.select_one('episodios', ['*'], f'id_episodio_anterior = {id_episodio}')
 
     def adicionar_historico(self, id_usuario: int, id_episodio: int):
-        self.insert('historico_episodios', {'id_usuario': id_usuario, 'id_episodio': id_episodio})
+        return self.insert('historico_episodios', {'id_usuario': id_usuario, 'id_episodio': id_episodio})
+
