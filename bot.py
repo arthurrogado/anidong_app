@@ -34,9 +34,7 @@ bot = TeleBot(BOT_TOKEN)
 
 # Set basic commands (start, about, help)
 basic_commands = [
-    BotCommand("start", "🤖 Inicia o bot"),
-    BotCommand("about", "❓ About the bot"),
-    BotCommand("help", "📚 Help")
+    BotCommand("start", "🤖 Inicia o bot")
 ]
 bot.set_my_commands(basic_commands, scope = BotCommandScopeAllPrivateChats() )
 bot.set_chat_menu_button(menu_button=MenuButtonCommands(type="commands"))
@@ -112,46 +110,45 @@ def automatic_run(data_text: str, chat_id: int, call: CallbackQuery = None):
 
     except Exception as e:
         bot.send_message(chat_id, 'Oops! Ocorreu um erro inesperado ao executar o comando. Contate o suporte.')
-        text_erro = f"Erro inesperado: {e} \n Linha: {e.__traceback__.tb_lineno}"
+        text_erro = f"\n    *** Erro inesperado: {e} \n Linha: {e.__traceback__.tb_lineno}"
         print(text_erro + '\n\n\n')
         raise e
         return
+
+
+# Start parameter (Deep linking)
+@bot.message_handler(commands=['start'])
+def start_parameter(msg: Message):
+    userid = msg.from_user.id
+    param = msg.text.split(" ")[1] if len(msg.text.split(" ")) > 1 else None
+    if param:
+        automatic_run(param, userid)
+    else:
+        _MainMenu(bot, userid)
 
 # Any message
 @bot.message_handler(func= lambda m: True)
 def receber(msg: Message):
     userid = msg.from_user.id
-        
-    if msg.text == "/about":
-        bot.send_message(userid, "About the bot")
-        msg_about = "This bot is template a bot that uses the WebApp feature (Mini App).\n\n"
-        msg_about += "Source code: "
-        bot.send_message(userid, msg_about)
-        return
-    
-    elif msg.text == "/help":
-        bot.send_message(userid, "Help")
-        msg_help = "Commands:\n"
-        msg_help += "/start - Start the bot\n"
-        msg_help += "/about - About the bot\n"
-        msg_help += "/help - Help\n"
-        bot.send_message(userid, msg_help)
-        return
-    
-    elif msg.text.startswith("/get_media_"):
-        media_id = msg.text.split("_")[2]
-        bot.copy_message(userid, '-1002215339038', media_id)
+
+    # verificar se é um link ou link embutido em texto
+    entities = msg.entities if msg.entities else []
+    for entity in entities:
+        if entity.type == "url":
+            if f"t.me/{bot.get_me().username}?start=" in msg.text:
+                automatic_run(msg.text.split("start=")[1], userid)
+                return
+        elif entity.type == "text_link":
+            if f"t.me/{bot.get_me().username}?start=" in entity.url:
+                automatic_run(entity.url.split("start=")[1], userid)
+                return        
     
     if msg.text.startswith("/") and not msg.text.startswith("/start"):
         automatic_run(msg.text[1:], userid)
         return
 
-    # MainMenu(bot=bot, userid=userid)
     _MainMenu(bot, userid)
 
-    # # Verify if user exists
-    # if db.verify_user(userid) == False:
-    #     db.add_user(userid, user.first_name, user.username, user.language_code.split('-')[0] )
 
 
 # CALLBACKS
@@ -171,6 +168,7 @@ def callback(call):
         automatic_run(data, userid, call)
 
 
+
 @bot.inline_handler(lambda query: True)
 def inline_handler(query: InlineQuery):
     # try:
@@ -184,10 +182,9 @@ def inline_handler(query: InlineQuery):
     #     print(e)
     
     # resultados = Queries(bot).pesquisar_obras(query.query)
-    resultados = Queries(bot, query.query).get_results()
+    resultados = Queries(bot, query.from_user.id, query.query, query.chat_type).get_results()
     bot.answer_inline_query(query.id, results=resultados, cache_time=1)
 
-    pass
 
 
 bot.infinity_polling()

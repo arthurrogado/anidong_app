@@ -14,22 +14,7 @@ class Obras(DB):
     def pesquisar_obras(self, query):
         return self.select('obras', ['*'], f'nome like "%{query}%"', final = 'limit 10')
 
-    def get_obras_em_alta(self):
-        # pegar obras com maiores buscas ou starts em algum histórico
-        # historico_obras: id_usuario, id_obra, data_acesso
-        # então pegar as obras mais acessadas nos últimos 7 dias limitando a 100
-        pass
 
-    def get_obras_favoritas(self, userid):
-        # tabela intermediaria: obras_favoritas
-        sql = f"""
-            SELECT obras.* FROM obras
-            JOIN obras_favoritas ON obras_favoritas.id_obra = obras.id
-            WHERE obras_favoritas.id_usuario = {userid}
-            limit 100
-        """
-        self.cursor.execute(sql)
-        return self.dictify_query(self.cursor)
 
     def get_obras_por_categoria(self, categoria):
         # tabela intermediaria: obras_categorias
@@ -82,11 +67,24 @@ class Obras(DB):
             SELECT o.* FROM obras o
             JOIN obras_favoritas of ON of.id_obra = o.id
             WHERE of.id_usuario = {id_usuario}
+            ORDER BY of.created_at DESC
             limit 100
         """
         self.cursor.execute(sql)
         return self.dictify_query(self.cursor)
     
+    def pesquisar_obras_favoritas(self, query: str, userid: int):
+        sql = f"""
+            SELECT o.* FROM obras o
+            JOIN obras_favoritas of ON of.id_obra = o.id
+            WHERE o.nome like "%{query}%" AND of.id_usuario = {userid}
+            ORDER BY of.created_at DESC
+            limit 100
+        """
+        self.cursor.execute(sql)
+        return self.dictify_query(self.cursor)
+    
+
     def get_obras_em_alta(self, dias: int = 7):
         """Seleciona obras em alta baseado em quantos usuários assistiram nos últimos dias"""
         sql = f"""
@@ -98,6 +96,23 @@ class Obras(DB):
             WHERE h.assistido_em >= DATE_SUB(NOW(), INTERVAL {dias} DAY)
             GROUP BY o.id
             ORDER BY qtd_acessos DESC
+            limit 100
+        """
+        self.cursor.execute(sql)
+        return self.dictify_query(self.cursor)
+
+
+    def get_generos(self):
+        sql = "SELECT genero FROM obras_generos GROUP BY genero"
+        self.cursor.execute(sql)
+        return self.dictify_query(self.cursor)
+        # return self.select('generos', ['*'])
+
+    def get_obras_por_genero(self, genero: int):
+        sql = f"""
+            SELECT o.* FROM obras o
+            JOIN obras_generos og ON og.id_obra = o.id
+            WHERE og.genero = '{genero}'
             limit 100
         """
         self.cursor.execute(sql)

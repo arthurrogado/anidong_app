@@ -15,7 +15,7 @@ class Episodios(DB):
             LIMIT 1;
         """
         self.cursor.execute(sql, [id_episodio])
-        result = self.dictify_query(self.cursor, ['id', 'id_temporada', 'id_episodio_anterior', 'msg_id', 'created_at', 'link', 'deleted_at', 'nome', 'nome_obra'])
+        result = self.dictify_query(self.cursor, ['id', 'id_temporada', 'id_episodio_anterior', 'msg_id', 'file_id', 'created_at', 'link', 'deleted_at', 'nome', 'nome_obra'])
         if result and len(result) > 0:
             return result[0]
         else:
@@ -52,7 +52,7 @@ class Episodios(DB):
             WHERE e.id_temporada = %s
         """
         self.cursor.execute(sql, [id_temporada])
-        result = self.dictify_query(self.cursor, ['id', 'id_temporada', 'id_episodio_anterior', 'msg_id', 'created_at', 'link', 'deleted_at', 'nome', 'nome_obra'])
+        result = self.dictify_query(self.cursor, ['id', 'id_temporada', 'id_episodio_anterior', 'msg_id', 'file_id', 'created_at', 'link', 'deleted_at', 'nome', 'nome_obra'])
         return self.ordenar_episodios(result)
     
     def get_episodio_com_ordem(self, id_episodio: int):

@@ -30,15 +30,15 @@ class Obra(BaseComponent):
         eh_favorita = Obras().eh_favorita(self.userid, id_obra)
         
         if eh_favorita:
-            label = "❤️ Favoritada"
-            opcao = f'Obra__desfavoritar__{id_obra}'
+            label_favorito = "❤️ Favoritada"
+            opcao_favorito = f'Obra__desfavoritar__{id_obra}'
         else:
-            label = "💟 Favoritar"
-            opcao = f'Obra__favoritar__{id_obra}'
+            label_favorito = "💟 Favoritar"
+            opcao_favorito = f'Obra__favoritar__{id_obra}'
 
         opcoes_markup = [
-            [[label, opcao]],
-            [['👁️ Assistir de onde parou', f'Obra__assistir__{id_obra}']]
+            [['👁️ Assistir de onde parou', f'Obra__assistir__{id_obra}']],
+            [[label_favorito, opcao_favorito], ['➡️ Compartilhar', f"switch_inline_query=o: {id_obra}"]]
         ]
 
         temporadas = Obras().get_temporadas_ordenadas(id_obra)
@@ -47,7 +47,7 @@ class Obra(BaseComponent):
                 symbol = '🌟'
             else:
                 symbol = '🎬'
-            opcoes_markup.append([[f'{symbol} Temporada ' + str(temporada.get('ordem')), f'switch_inline_query_current_chat=t: {temporada.get("id")}']])
+            opcoes_markup.append([[f'{symbol} Temporada ' + str(temporada.get('ordem')), f'switch_inline_query_current_chat=t: {temporada.get("id")} ']])
 
         markup = Markup.generate_inline(opcoes_markup)            
 
@@ -121,8 +121,8 @@ class Obra(BaseComponent):
         if self.call is not None:
             self.bot.answer_callback_query(self.call.id, '❤️ Obra favoritada!')
             novo_markup = self.call.message.reply_markup
-            novo_markup.keyboard[0][0].text = '💔 Desfavoritar'
-            novo_markup.keyboard[0][0].callback_data = f'Obra__desfavoritar__{id_obra}'
+            novo_markup.keyboard[1][0].text = '❤️ Favoritada'
+            novo_markup.keyboard[1][0].callback_data = f'Obra__desfavoritar__{id_obra}'
             self.bot.edit_message_reply_markup(self.userid, self.call.message.message_id, reply_markup=novo_markup)
         else:
             self.bot.send_message(self.userid, '❤️ Obra favoritada!')
@@ -132,8 +132,22 @@ class Obra(BaseComponent):
         if self.call is not None:
             self.bot.answer_callback_query(self.call.id, '💔 Obra desfavoritada!')
             novo_markup = self.call.message.reply_markup
-            novo_markup.keyboard[0][0].text = '💟 Favoritar'
-            novo_markup.keyboard[0][0].callback_data = f'Obra__favoritar__{id_obra}'
+            novo_markup.keyboard[1][0].text = '💟 Favoritar'
+            novo_markup.keyboard[1][0].callback_data = f'Obra__favoritar__{id_obra}'
             self.bot.edit_message_reply_markup(self.userid, self.call.message.message_id, reply_markup=novo_markup)
         else:
             self.bot.send_message(self.userid, '💔 Obra desfavoritada!')
+
+    def ver_generos(self):
+        generos = Obras().get_generos()
+        texto = '📚 **Gêneros disponíveis:**'
+        markup_data = []
+        pos = 1
+        for genero in generos:
+            if pos == 1:
+                markup_data.append([[genero.get('genero'), 'switch_inline_query_current_chat=g: ' + genero.get('genero')]])
+                pos += 1
+            else:
+                markup_data[-1].append([genero.get('genero'), 'switch_inline_query_current_chat=g: ' + genero.get('genero')])
+                pos = 1
+        self.bot.send_message(self.userid, texto, reply_markup=Markup.generate_inline(markup_data), parse_mode='Markdown')
