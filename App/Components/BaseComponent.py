@@ -6,7 +6,7 @@ class BaseComponent():
         self.bot = bot
         self.userid = userid
         self.call = call
-        pass
+        self.bot.send_chat_action(self.userid, 'typing')
 
     def cancel(self, call):
         self.bot.answer_callback_query(call.id, '❌ Cancelled')

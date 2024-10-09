@@ -6,6 +6,7 @@ from App.Database.Episodios import Episodios
 from App.Database.Obras import Obras
 from App.Database.Temporadas import Temporadas
 from App.Utils.Markup import Markup
+from App.Database.Usuarios import Usuarios
 
 class Obra(BaseComponent):
     def __init__(self, bot: TeleBot, userid, call = None):
@@ -84,6 +85,11 @@ class Obra(BaseComponent):
 
 
     def assistir_episodio(self, id_episodio):
+        if Usuarios().esta_assinando(self.userid) == False:
+            markup = Markup.generate_inline([[['🔓 Assinar', 'Assinatura__comprar']]])
+            self.bot.send_message(self.userid, '🤖 Você precisa de uma assinatura para assistir episódios.', reply_markup=markup)
+            return
+
         episodio = Episodios().get_episodio_com_ordem(id_episodio)
         if episodio is None:
             self.bot.send_message(self.userid, 'Episódio não encontrado')
@@ -112,7 +118,7 @@ class Obra(BaseComponent):
 
         caption = f"🎬 Obra: {episodio.get('nome_obra')} \n > Temporada: {ordem_temporada} \n > Episódio {episodio.get('ordem')}"
         
-        self.bot.copy_message(self.userid, from_chat_id=CLOUD_ID, message_id=episodio.get('msg_id'), reply_markup=markup_controles, caption=caption)
+        self.bot.copy_message(self.userid, from_chat_id=CLOUD_ID, message_id=episodio.get('msg_id'), reply_markup=markup_controles, caption=caption, protect_content=True)
         Episodios().adicionar_historico(self.userid, episodio.get('id'))
 
 

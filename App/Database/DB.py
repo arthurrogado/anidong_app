@@ -89,9 +89,9 @@ class DB:
         rows = self.cursor.fetchall()
         return [dict(zip([key[0] for key in self.cursor.description], row)) for row in rows]
     
-    def select_one(self, table: str, columns: list, where: str = None):
+    def select_one(self, table: str, columns: list, where: str = None, final: str = None):
         """ Example: select_one('users', ['userid', 'lang'], 'userid = ?', [userid]) """
-        result = self.select(table, columns, where)
+        result = self.select(table, columns, where, final=final)
         # return result[0] if result else {}
         return result[0] if result else None
     

@@ -37,7 +37,8 @@ class _MainMenu(BaseComponent):
     def menu_inicial(self):
         texto = f"Olá, {self.usuario.get('nome')}! Eu sou o bot Anidong! 🤖 \n\n Deseja comprar uma assinatura?"
         markup = Markup.generate_inline([
-            [['📝 Comprar assinatura', 'assinatura__comprar']]
+            [['📝 Comprar assinatura', 'Assinatura__comprar']],
+            [['🔍 Pesquisar antes', 'switch_inline_query_current_chat=o: '], ['📂 Gêneros', 'Obra__ver_generos']]
         ])
         self.bot.send_message(self.userid, texto, reply_markup=markup)
 
@@ -45,7 +46,7 @@ class _MainMenu(BaseComponent):
     def menu_assinantes(self):
         texto = f"Olá, {self.usuario.get('nome')}! 🤖 \n\n O que deseja fazer?"
         markup = Markup().generate_inline([
-            [['✅ Visualizar assinatura', 'assinatura__visualizar']],
+            [['✅ Visualizar assinatura', 'Assinatura__visualizar']],
             [['⭐ Favoritas', 'switch_inline_query_current_chat=of: '], ['🔍 Pesquisar', 'switch_inline_query_current_chat=o: ']],
             [['📈 Em alta', 'switch_inline_query_current_chat=ea: '], ['📂 Gêneros', 'Obra__ver_generos']]
         ])

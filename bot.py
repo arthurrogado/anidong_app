@@ -18,9 +18,6 @@ from App.Config.config import *
 from App.Config.secrets import *
 from App.Utils.Markup import Markup
 
-# Import Models
-from App.Database.users import User
-
 # Import Components
 from App.Components.main_menu import MainMenu
 
@@ -81,39 +78,30 @@ def automatic_run(data_text: str, chat_id: int, call: CallbackQuery = None):
     try:
         class_path, method_name, *params = data_text.split("__")
         class_name = class_path.split("_")[-1]
-        class_path = ".".join([class_part for class_part in class_path.split("_")])
-        method_name = f"{method_name}" if method_name else "async_init"
-        print(f"\n  Class path: ", class_path, " | Class name: " + class_name + " | Método: ", method_name, " | Parâmetros: ", params)
+        class_path = ".".join(class_path.split("_"))
+        method_name = method_name or "async_init"
+        print(f"\n  Class path: {class_path} | Class name: {class_name} | Método: {method_name} | Parâmetros: {params}")
     
         # Importar o módulo dinamicamente
         try:
-            module = importlib.import_module(f"App.Components._{class_path}")
+            module = importlib.import_module(f"App.Components.{class_path}.{class_path}")
         except ModuleNotFoundError:
-            try:
-                module = importlib.import_module(f"App.Components.{class_path}.{class_path}")
-            except ModuleNotFoundError:
-                module = importlib.import_module(f"App.Components.{class_path}")
+            module = importlib.import_module(f"App.Components.{class_path}")
 
-        try:
-            # Obter a classe dinamicamente
-            class_ = getattr(module, class_name)
+        # Obter a classe dinamicamente
+        class_ = getattr(module, class_name)
         
-            # Instanciar a classe
-            instance = class_(bot, chat_id, call)
+        # Instanciar a classe
+        instance = class_(bot, chat_id, call)
 
-            # Obter o método dinamicamente e chamá-lo com os parâmetros
-            method = getattr(instance, method_name)
-            method(*params)
-            return
-        except ModuleNotFoundError as e:
-            bot.send_message(chat_id, 'Opa, calma aí, paizão. Tô desenvolvendo isso ainda. Mas já já tá pronto. \n Ou talvez é só um comando desconhecido mesmo haha')
-
+        # Obter o método dinamicamente e chamá-lo com os parâmetros
+        method = getattr(instance, method_name)
+        method(*params)
     except Exception as e:
         bot.send_message(chat_id, 'Oops! Ocorreu um erro inesperado ao executar o comando. Contate o suporte.')
         text_erro = f"\n    *** Erro inesperado: {e} \n Linha: {e.__traceback__.tb_lineno}"
         print(text_erro + '\n\n\n')
         raise e
-        return
 
 
 # Start parameter (Deep linking)
